@@ -8,15 +8,24 @@ load(
     "cmake_configure_file",
 )
 
+load(
+    "@bazelruby_rules_ruby//ruby:defs.bzl",
+    "ruby_binary",
+    "ruby_library",
+    "ruby_test",
+    "ruby_rspec",
+)
+
 package(default_visibility = ["//visibility:public"])
 
 SDF_MAJOR_VERSION = 10
 SDF_MINOR_VERSION = 0
 SDF_PATCH_VERSION = 0
-PROJECT_NAME = "ign"
+PROJECT_NAME = "sdf"
 SDF_VERSION_NAME = "sdf10"
 INSTALL_DIR = "/tmp"
 SDF_PKG_VERSION = 0
+library_location = "/usr"
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
@@ -34,6 +43,38 @@ cmake_configure_file(
         "SDF_PKG_VERSION=%d" % (SDF_PKG_VERSION),
     ],
     visibility = ["//visibility:private"],
+)
+
+cmake_configure_file(
+    name = "yaml",
+    src = "conf/sdformat.yaml.in",
+    out = "conf/sdformat.yaml",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "PROJECT_NAME_NO_VERSION=%s" % [PROJECT_NAME],
+        "ign_library_path=%s" % [library_location],
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Generates config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "ruby",
+    src = "src/cmd/cmdsdformat.rb.in",
+    out = "src/cmd/cmdsdformat.rb",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "library_location=%s" % [library_location],
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ruby_binary(
+    name = "sdformat-ruby",
+    srcs = ["src/cmd/cmdsdformat.rb"],
+    includes = ["src/cmd"],
+    main = "src/cmd/cmdsdformat.rb",
+    visibility = ["//visibility:public"],
 )
 
 test_sources = [
