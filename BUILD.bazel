@@ -9,6 +9,11 @@ load(
 )
 
 load(
+    "//ign_bazel:generate_yaml.bzl",
+    "generate_yaml",
+)
+
+load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",
     "ruby_binary",
     "ruby_library",
@@ -45,21 +50,19 @@ cmake_configure_file(
     visibility = ["//visibility:private"],
 )
 
-cmake_configure_file(
-    name = "yaml",
-    src = "conf/sdformat.yaml.in",
-    out = "conf/sdformat.yaml",
-    cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "PROJECT_NAME_NO_VERSION=%s" % [PROJECT_NAME],
-        "ign_library_path=%s" % [library_location],
-    ],
-    visibility = ["//visibility:public"],
+cmds = "    - sdf   : Utilities for SDF files."
+
+generate_yaml(
+    name = PROJECT_NAME,
+    library_name = "sdformat",
+    library_version = "%d.%d.%d" % (SDF_MAJOR_VERSION, SDF_MINOR_VERSION, SDF_PATCH_VERSION),
+    commands = cmds,
+    ruby_target = "//sdformat:cmdsdformat.rb",
 )
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
-    name = "ruby",
+    name = "cmdsdformat.rb",
     src = "src/cmd/cmdsdformat.rb.in",
     out = "src/cmd/cmdsdformat.rb",
     cmakelists = ["CMakeLists.txt"],
